@@ -9,6 +9,7 @@
 #include <QScreen>
 #include <QFile>
 #include <QTimer>
+#include <QDebug>
 
 class BugSplatGame : public QMainWindow {
     Q_OBJECT
@@ -21,7 +22,9 @@ public:
         setupMenu();
        // setupAudio();
 
-        splat = QPixmap("fly.png");
+        background = QPixmap("background.jpg");  // or .png
+
+        splat = QPixmap(":/splat.png").scaled(100,100);
         splatTimer = new QTimer(this);
         splatTimer->setSingleShot(true);
         connect(splatTimer, &QTimer::timeout, this, [&]() {
@@ -29,13 +32,18 @@ public:
             update();
         });
 
+        if (splat.isNull())
+            qDebug() << "Failed to load splat.png!";
+
+        setMouseTracking(true);
+
 
         splatsound.setSource(QUrl("qrc:/splat.wav"));
         music.setSource(QUrl("qrc:/music.wav"));
 music.play();
 
-        bug = QPixmap(":/fly.png");
-        hand = QPixmap(":/hand.png");
+        bug = QPixmap(":/fly.png").scaled(100,200);
+        hand = QPixmap(":/hand.png").scaled(200,200);
 
         bugPos = QPoint(rand() % width(), rand() % height());
 
@@ -47,13 +55,19 @@ music.play();
     }
 
 protected:
+
     void paintEvent(QPaintEvent*) override {
         QPainter p(this);
-        p.drawPixmap(bugPos, bug);
-        if (showHand)
-            p.drawPixmap(handPos, hand);
+       // p.drawPixmap(0, 0, background);  // Background
+        p.drawPixmap(bugPos, bug);       // Bug
         if (showSplat)
-            p.drawPixmap(splatPos, splat);
+            p.drawPixmap(splatPos, splat); // Splat
+        p.drawPixmap(handPos, hand);     // Hand (now always drawn)
+    }
+
+    void mouseMoveEvent(QMouseEvent* event) override {
+        handPos = event->pos();
+        update();
     }
 
     void mousePressEvent(QMouseEvent* event) override {
@@ -70,6 +84,8 @@ protected:
                 splatsound.play();
             bugPos = QPoint(rand() % (width() - bug.width()), rand() % (height() - bug.height()));
         }
+        showHand = true;
+        QTimer::singleShot(200, this, [&]() { showHand = false;  });
 
         update();
     }
@@ -90,6 +106,7 @@ private:
     QPoint splatPos;
     bool showSplat = false;
     QTimer* splatTimer;
+    QPixmap background;
 
  QSoundEffect splatsound, music;
 

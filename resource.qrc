@@ -2,6 +2,7 @@
   <qresource prefix="/">
     <file>hand.png</file>
     <file>fly.png</file>
+    <file>splat.png</file>
     <file>splat.wav</file>
     <file>music.wav</file>
   </qresource>
